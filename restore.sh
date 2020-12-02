@@ -1,6 +1,7 @@
 #!/bin/sh -e
 
 RCLONE="/usr/bin/rclone"
+OPENSSL="/usr/bin/openssl"
 
 B2_ROOT=$(cd `dirname "${0}"` && pwd)
 B2_PARM="${B2_ROOT}/backup.b2"
@@ -17,9 +18,10 @@ param "${B2_PARM}" "APPKEY"      B2_APPKEY
 param "${B2_PARM}" "DIRECTORY"   B2_DIRECTORY
 
 B2_SYNC_DIR="${B2_DIRECTORY:-$B2_ROOT}/sync"
-B2_SYNC_LST="${B2_DIRECTORY:-$B2_ROOT}/.sync"
+B2_SYNC_LST="${B2_ROOT}/.sync"
+
 B2_REST_DIR="${B2_DIRECTORY:-$B2_ROOT}/restore"
-B2_REST_LST="${B2_DIRECTORY:-$B2_ROOT}/.restore"
+B2_REST_LST="${B2_ROOT}/.restore"
 
 mkdir -p "${B2_SYNC_DIR}" && rm -f "${B2_SYNC_LST}" && touch "${B2_SYNC_LST}" && rm -f "${B2_REST_LST}"
 
@@ -31,7 +33,7 @@ echo "account = ${B2_KEYID}" >> "${RCLONE_CONF}"
 echo "key = ${B2_APPKEY}"    >> "${RCLONE_CONF}"
 echo "hard_delete = true"    >> "${RCLONE_CONF}"
 
-RCLONE_FLAGS="--config ${RCLONE_CONF} --log-level INFO --bwlimit 2M"
+RCLONE_FLAGS="--config ${RCLONE_CONF} --bwlimit 2M --log-level INFO --stats-one-line --stats 5m"
 
 if [ $# -eq 0 ] ; then
   printf "\nListing ...\n\n"
@@ -70,7 +72,7 @@ fi
 while IFS= read -r LINE ; do
    echo "${B2_REST_DIR}/${LINE}"
    mkdir -p "$(dirname "${B2_REST_DIR}/${LINE}")"
-   openssl enc -d -aes256 -iter 1 -nosalt -pass "pass:${B2_MAGIC}" -in "${B2_SYNC_DIR}/${LINE}" -out "${B2_REST_DIR}/${LINE}"
+   "${OPENSSL}" enc -d -aes256 -iter 1 -nosalt -pass "pass:${B2_MAGIC}" -in "${B2_SYNC_DIR}/${LINE}" -out "${B2_REST_DIR}/${LINE}"
 done < "${B2_SYNC_LST}"
 
 rm "${RCLONE_CONF}"

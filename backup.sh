@@ -1,6 +1,7 @@
 #!/bin/sh -e
 
 RCLONE="/usr/bin/rclone"
+OPENSSL="/usr/bin/openssl"
 
 B2_ROOT=$(cd `dirname "${0}"` && pwd)
 B2_PARM="${B2_ROOT}/backup.b2"
@@ -17,7 +18,7 @@ param "${B2_PARM}" "APPKEY"     B2_APPKEY
 param "${B2_PARM}" "DIRECTORY"  B2_DIRECTORY
 
 B2_SYNC_DIR="${B2_DIRECTORY:-$B2_ROOT}/sync"
-B2_SYNC_LST="${B2_DIRECTORY:-$B2_ROOT}/.sync"
+B2_SYNC_LST="${B2_ROOT}/.sync"
 
 RCLONE_CONF="${B2_ROOT}/rclone.conf"
 
@@ -27,7 +28,7 @@ echo "account = ${B2_KEYID}" >> "${RCLONE_CONF}"
 echo "key = ${B2_APPKEY}"    >> "${RCLONE_CONF}"
 echo "hard_delete = true"    >> "${RCLONE_CONF}"
 
-RCLONE_FLAGS="--config ${RCLONE_CONF} --log-level INFO --bwlimit 512K"
+RCLONE_FLAGS="--config ${RCLONE_CONF} --bwlimit 768k --log-level INFO --stats-one-line --stats 5m"
 
 rm -rf ${B2_SYNC_DIR} && mkdir -p "${B2_SYNC_DIR}" && rm -f "${B2_SYNC_LST}" && touch "${B2_SYNC_LST}"
 
@@ -48,7 +49,7 @@ fi
 while IFS= read -r LINE ; do
   echo "/${LINE}"
   mkdir -p "${B2_SYNC_DIR}/$(dirname "${LINE}")"
-  openssl enc -e -aes256 -iter 1 -nosalt -pass "pass:${B2_MAGIC}" -in "/${LINE}" -out "${B2_SYNC_DIR}/${LINE}"
+  "${OPENSSL}" enc -e -aes256 -iter 1 -nosalt -pass "pass:${B2_MAGIC}" -in "/${LINE}" -out "${B2_SYNC_DIR}/${LINE}"
   touch -r "/${LINE}" "${B2_SYNC_DIR}/${LINE}"
 done < "${B2_SYNC_LST}"
 
@@ -60,4 +61,4 @@ printf "\nSyncing ...\n\n"
 
 rm "${RCLONE_CONF}"
 
-printf "Done.\n\n"
+printf "\nDone.\n\n"
