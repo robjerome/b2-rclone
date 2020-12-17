@@ -18,10 +18,10 @@ param "${B2_PARM}" "APPKEY"      B2_APPKEY
 param "${B2_PARM}" "DIRECTORY"   B2_DIRECTORY
 
 B2_SYNC_DIR="${B2_DIRECTORY:-$B2_ROOT}/sync"
-B2_SYNC_LST="${B2_ROOT}/.sync"
+B2_SYNC_LST="${B2_DIRECTORY:-$B2_ROOT}/.sync"
 
 B2_REST_DIR="${B2_DIRECTORY:-$B2_ROOT}/restore"
-B2_REST_LST="${B2_ROOT}/.restore"
+B2_REST_LST="${B2_DIRECTORY:-B2_ROOT}/.restore"
 
 mkdir -p "${B2_SYNC_DIR}" && rm -f "${B2_SYNC_LST}" && touch "${B2_SYNC_LST}" && rm -f "${B2_REST_LST}"
 
@@ -33,7 +33,7 @@ echo "account = ${B2_KEYID}" >> "${RCLONE_CONF}"
 echo "key = ${B2_APPKEY}"    >> "${RCLONE_CONF}"
 echo "hard_delete = true"    >> "${RCLONE_CONF}"
 
-RCLONE_FLAGS="--config ${RCLONE_CONF} --bwlimit 2M --log-level INFO --stats-one-line --stats 5m"
+RCLONE_FLAGS="--config ${RCLONE_CONF} --bwlimit 2M --log-level INFO --stats-one-line --stats 0m"
 
 if [ $# -eq 0 ] ; then
   printf "\nListing ...\n\n"
