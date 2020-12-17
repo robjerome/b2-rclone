@@ -28,7 +28,7 @@ echo "account = ${B2_KEYID}" >> "${RCLONE_CONF}"
 echo "key = ${B2_APPKEY}"    >> "${RCLONE_CONF}"
 echo "hard_delete = true"    >> "${RCLONE_CONF}"
 
-RCLONE_FLAGS="--config ${RCLONE_CONF} --bwlimit 768k --log-level INFO --stats-one-line --stats 0m"
+RCLONE_FLAGS="--config ${RCLONE_CONF} --bwlimit 768k --log-level INFO --stats-one-line --stats 60m"
 
 rm -rf ${B2_SYNC_DIR} && mkdir -p "${B2_SYNC_DIR}" && rm -f "${B2_SYNC_LST}" && touch "${B2_SYNC_LST}"
 
@@ -55,6 +55,7 @@ done < "${B2_SYNC_LST}"
 
 printf "\nSyncing ...\n\n"
 
+cd $(dirname "${B2_SYNC_DIR}")
 "${RCLONE}" ${RCLONE_FLAGS} sync --checksum "${B2_SYNC_DIR}" "remote:${B2_BUCKET}"
 "${RCLONE}" ${RCLONE_FLAGS} cleanup "remote:${B2_BUCKET}"
 "${RCLONE}" ${RCLONE_FLAGS} --b2-versions ls "remote:${B2_BUCKET}" | awk '{print $2}' > "${B2_SYNC_LST}"
